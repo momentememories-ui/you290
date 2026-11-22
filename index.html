@@ -168,7 +168,6 @@
             50% { transform: translateX(-50%) scale(1.06); }
         }
 
-        /* ข้อความล่างสุดเปลี่ยนเป็นสีขาวเรียบร้อยแล้ว */
         .bottom-hint-text {
             position: absolute;
             bottom: 25px;
@@ -394,7 +393,6 @@
             </div>
         </div>
 
-        <!-- ข้อความล่างสุด (สีขาว) -->
         <div class="bottom-hint-text" id="bottomHintText">แตะหน้าจอเพื่อเริ่มเพลง</div>
 
         <div class="modal-overlay" id="puzzleModal">
@@ -423,40 +421,39 @@
     <script>
         const bgMusic = document.getElementById('bgMusic');
         const bottomHintText = document.getElementById('bottomHintText');
-        
-        // แสดงข้อความ "แตะหน้าจอเพื่อเริ่มเพลง" ไว้ที่ด้านล่างสุดตอนเริ่มเปิดเว็บ
+
         bottomHintText.style.display = 'block';
 
         let isMusicStarted = false;
         document.body.addEventListener('click', () => {
             if (bgMusic.paused) {
-                bgMusic.play().catch(e => {});
+                bgMusic.play().catch(() => {});
             }
             if (!isMusicStarted && score < targetScore) {
                 isMusicStarted = true;
                 bottomHintText.style.display = 'none';
             }
-        }, { once: false });
+        });
 
         function playPopSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                
+
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(500, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
-                
+
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                
+
                 osc.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-                
+
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
-            } catch(e) {}
+            } catch (e) {}
         }
 
         let score = 0;
@@ -480,20 +477,21 @@
 
             const krathong = document.createElement('div');
             krathong.classList.add('floating-krathong');
-            
+
             const testImg = new Image();
             testImg.src = 'กระทง.png';
             testImg.onerror = () => krathong.classList.add('no-image');
 
-            const randomY = Math.random() * (waterSection.clientHeight - 80);
+            const maxTop = Math.max(80, waterSection.clientHeight - 80);
+            const randomY = Math.random() * maxTop;
             krathong.style.top = randomY + 'px';
             krathong.style.left = '-70px';
 
             waterSection.appendChild(krathong);
 
             let currentLeft = -70;
-            const speed = 2.0 + Math.random() * 1.5; 
-            
+            const speed = 2.0 + Math.random() * 1.5;
+
             const moveInterval = setInterval(() => {
                 currentLeft += speed;
                 krathong.style.left = currentLeft + 'px';
@@ -550,7 +548,7 @@
         function initPuzzle() {
             do {
                 currentOrder.sort(() => Math.random() - 0.5);
-            } while (isSorted(currentOrder)); 
+            } while (isSorted(currentOrder));
             renderPuzzle();
         }
 
@@ -562,7 +560,7 @@
                 const piece = document.createElement('div');
                 piece.classList.add('puzzle-piece');
                 piece.setAttribute('draggable', 'true');
-                
+
                 const x = (pieceIndex % 3) * 88;
                 const y = Math.floor(pieceIndex / 3) * 158;
                 piece.style.backgroundPosition = `-${x}px -${y}px`;
@@ -593,7 +591,7 @@
                     piece.classList.remove('drag-over');
                     const targetIndex = parseInt(piece.dataset.index);
                     if (draggedIndex !== null && draggedIndex !== targetIndex) {
-                        let temp = currentOrder[draggedIndex];
+                        const temp = currentOrder[draggedIndex];
                         currentOrder[draggedIndex] = currentOrder[targetIndex];
                         currentOrder[targetIndex] = temp;
                         renderPuzzle();
@@ -604,13 +602,8 @@
                     }
                 });
 
-                let touchStartX = 0;
-                let touchStartY = 0;
-
-                piece.addEventListener('touchstart', (e) => {
+                piece.addEventListener('touchstart', () => {
                     draggedIndex = currentIndex;
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
                     piece.classList.add('dragging');
                 }, { passive: true });
 
@@ -619,7 +612,7 @@
                     const touchCurrentX = e.touches[0].clientX;
                     const touchCurrentY = e.touches[0].clientY;
                     const targetElement = document.elementFromPoint(touchCurrentX, touchCurrentY);
-                    
+
                     document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('drag-over'));
                     if (targetElement && targetElement.classList.contains('puzzle-piece')) {
                         targetElement.classList.add('drag-over');
@@ -631,12 +624,12 @@
                     document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('drag-over'));
                     const touchEndX = e.changedTouches[0].clientX;
                     const touchEndY = e.changedTouches[0].clientY;
-                    
+
                     const targetElement = document.elementFromPoint(touchEndX, touchEndY);
                     if (targetElement && targetElement.classList.contains('puzzle-piece')) {
                         const targetIndex = parseInt(targetElement.dataset.index);
                         if (draggedIndex !== null && draggedIndex !== targetIndex) {
-                            let temp = currentOrder[draggedIndex];
+                            const temp = currentOrder[draggedIndex];
                             currentOrder[draggedIndex] = currentOrder[targetIndex];
                             currentOrder[targetIndex] = temp;
                             renderPuzzle();
@@ -657,15 +650,14 @@
             document.getElementById('puzzleGrid').style.display = 'none';
             document.getElementById('completedPreview').style.display = 'block';
             document.getElementById('successText').style.display = 'block';
-            
+
             triggerIntenseFireworks();
 
             setTimeout(() => {
                 puzzleModal.style.display = 'none';
                 questionMark.style.display = 'none';
                 couplePhoto.style.display = 'block';
-                
-                // เปลี่ยนข้อความเป็น "ลองแตะที่รูปของเราดูสิ" (สีขาว) ไว้ที่ด้านล่างสุด
+
                 bottomHintText.innerText = "ลองแตะที่รูปของเราดูสิ";
                 bottomHintText.style.display = 'block';
 
@@ -676,7 +668,7 @@
         function triggerIntenseFireworks() {
             fireworksContainer.style.display = 'block';
             const colors = ['#ff69b4', '#ff1493', '#ffb6c1', '#ffff00', '#00ffff', '#ffffff', '#ff4500'];
-            
+
             for (let burst = 0; burst < 8; burst++) {
                 setTimeout(() => {
                     const startX = 10 + Math.random() * 80;
@@ -705,11 +697,11 @@
                 }, burst * 500);
             }
 
-            setTimeout(() => { 
-                if(!ambientFireworksInterval) {
-                    fireworksContainer.style.display = 'none'; 
+            setTimeout(() => {
+                if (!ambientFireworksInterval) {
+                    fireworksContainer.style.display = 'none';
                 }
-                fireworksContainer.innerHTML = ''; 
+                fireworksContainer.innerHTML = '';
             }, 5500);
         }
 
@@ -744,36 +736,41 @@
             }, 1500);
         }
 
-        const wishMessage = "ลอยกระทงปีนี่เราขอให้เธอ\n
-สุขภาพแข็งแรง ไม่เจ็บไม่ป่วย\n
-ไม่ว่าจะต้องเหนื่อยกับงาน\n
-หรือเจอเรื่องอะไร\n
-ขอให้เธอผ่านไปได้ด้วยดี\n
-ขอให้เรื่องที่ไม่ดี\n
-ลอยหายไปกับสายน้ำ\n
-ขอให้มีแต่สิ่งดีๆและคนใจดี\n
-ปล่อยความทุกข์ความเหนื่อย\n
-และเรื่องที่ไม่ดีไปกับกระทง\n
-ขอให้ทุกวันของเธอเป็นวันที่ดี\n
-และมีรอยยิ้มอยู่เสมอนะ\n
-เราขอให้เราได้อยู่ข้างๆกัน\n
-คอยเป็นกำลังใจนะ\n\n
-เราจะอยู่ข้างเธอตลอดไปนะ\n
-โอมรักฟ้าน่ะ💕💐";\n
+        const wishMessage = [
+            "ลอยกระทงปีนี่เราขอให้เธอ",
+            "สุขภาพแข็งแรง ไม่เจ็บไม่ป่วย",
+            "ไม่ว่าจะต้องเหนื่อยกับงาน",
+            "หรือเจอเรื่องอะไร",
+            "ขอให้เธอผ่านไปได้ด้วยดี",
+            "ขอให้เรื่องที่ไม่ดี",
+            "ลอยหายไปกับสายน้ำ",
+            "ขอให้มีแต่สิ่งดีๆและคนใจดี",
+            "ปล่อยความทุกข์ความเหนื่อย",
+            "และเรื่องที่ไม่ดีไปกับกระทง",
+            "ขอให้ทุกวันของเธอเป็นวันที่ดี",
+            "และมีรอยยิ้มอยู่เสมอนะ",
+            "เราขอให้เราได้อยู่ข้างๆกัน",
+            "คอยเป็นกำลังใจนะ",
+            "",
+            "เราจะอยู่ข้างเธอตลอดไปนะ",
+            "โอมรักฟ้าน่ะ💕💐"
+        ].join("\n");
+
         let isTypingStarted = false;
 
         couplePhoto.addEventListener('click', () => {
-            bottomHintText.style.display = 'none'; // ซ่อนข้อความเมื่อกดที่รูปแล้ว
+            bottomHintText.style.display = 'none';
             wishModal.style.display = 'flex';
             if (!isTypingStarted) {
                 isTypingStarted = true;
+                typedText.textContent = '';
                 typeWriter(wishMessage, 0);
             }
         });
 
         function typeWriter(text, i) {
             if (i < text.length) {
-                typedText.innerHTML += text.charAt(i);
+                typedText.textContent += text.charAt(i);
                 setTimeout(() => typeWriter(text, i + 1), 60);
             }
         }
